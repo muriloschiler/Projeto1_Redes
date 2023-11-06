@@ -1,5 +1,7 @@
 import ssl
 import socket
+import re
+import json
 
 class GmailIMAP:
 
@@ -23,13 +25,37 @@ class GmailIMAP:
             
             # Listar caixas de correio
             wrapped_socket.send(b'a2 LIST "" *\r\n')
-            print(wrapped_socket.recv(1024).decode())
+            imap_response = wrapped_socket.recv(1024).decode()
+            print(imap_response)
             
             # Encerrar a conexão
             print("LOGOUT")
             wrapped_socket.send(b'a6 LOGOUT\r\n')
             print(wrapped_socket.recv(1024).decode())
             wrapped_socket.close()
+
+            #Parser da resposta 
+            lines = imap_response.strip().split('\r\n')
+            info_lines = lines[:-1]
+            mailboxes = []
+            for line in info_lines:
+                match = re.match(r'\* LIST \((.*?)\) "(.+)" "(.+)"', line)
+                if match:
+                    flags = match.group(1)
+                    delimiter = match.group(2)
+                    name = match.group(3)
+                    mailbox_info = {
+                        "flags": flags.split(),
+                        "delimiter": delimiter,
+                        "name": name
+                    }
+                    mailboxes.append(mailbox_info)
+            # Convertendo para JSON
+            json_data = json.dumps(mailboxes, indent=2)
+            print("JSON:")
+            print(json_data)
+            
+            return json_data
         
         def PostSelectInbox(self):
             # Configurações do servidor IMAP (substitua com suas credenciais e servidor)
@@ -90,28 +116,53 @@ class GmailIMAP:
             print(unread_response)
             email_nums = unread_response.split()
             indices = [item for item in email_nums if item.isdigit()]
+            imap_response = b""
             # Se há e-mails não lidos, buscar o conteúdo deles
             if indices:
                 print("EMAILS NÃO LIDOS")   
-                email_data = b""
 
                 for num in indices:
                     command = 'a5 FETCH ' + num + ' (RFC822)\r\n'
                     wrapped_socket.send(command.encode('ascii'))
                     response = wrapped_socket.recv(1024)
-                    email_data += response
+                    imap_response += response
                     response = wrapped_socket.recv(1024)
-                    email_data += response
+                    imap_response += response
 
                 for num in indices:
                     response = wrapped_socket.recv(1024)
-                    email_data += response
+                    imap_response += response
 
-                print(email_data.decode('utf-8'))
+                print(imap_response.decode('utf-8'))
                 
             # Encerrar a conexão
             print("LOGOUT")
             wrapped_socket.send(b'a6 LOGOUT\r\n')
             print(wrapped_socket.recv(1024).decode())
             wrapped_socket.close()
+
+            #Parser da resposta 
+            imap_response = imap_response[1:-1]
+            emails_data = re.split(r'\* \d+ FETCH ', imap_response.decode('utf-8'))
+            emails = []
+            for email_info in emails_data:
+                match = re.search(r'RFC822 \{(\d+)\}(.+?)FLAGS', email_info, re.DOTALL)
+                if match:
+                    email_body = match.group(2).strip()
+                    email = {
+                        "RFC822_Size": int(match.group(1)),
+                        "Email": email_body
+                    }
+                    emails.append(email)
+
+            # Convertendo para JSON
+            json_data = json.dumps(emails, indent=2)
+            print("JSON:")
+            print(json_data)
+
+            return json_data
+
+            
+
+
         

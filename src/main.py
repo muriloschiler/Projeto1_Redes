@@ -16,25 +16,19 @@ async def SendEmail(message:Message):
 @app.get("/email")
 async def GetUnreadEMails():
     gmailIMAP = GmailIMAP()
-    gmailIMAP.GetUnreadEMails()
-    return {"status":"200"}
+    response = gmailIMAP.GetUnreadEMails()
+    return {response}
     
 @app.get("/inbox")
 async def GetInboxList():
     gmailIMAP = GmailIMAP()
-    gmailIMAP.GetInboxList()
-    return {"status":"200"}
+    response = gmailIMAP.GetInboxList()
+    return {response}
 
 @app.post("/inbox")
 async def PostSelectInbox():
     gmailIMAP = GmailIMAP()
     gmailIMAP.PostSelectInbox()
     return {"status":"200"}
-
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 
