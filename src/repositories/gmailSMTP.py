@@ -7,7 +7,7 @@ from models.message import Message
 
 class GmailSMTP:
 
-    def SendMesage(self, message: Message):
+    def SendEmail(self, message: Message):
         SMTP_SERVER = 'smtp.gmail.com' 
         SMTP_PORT = 587
         YOUR_EMAIL = "murilo.teste.email.dev@gmail.com"
