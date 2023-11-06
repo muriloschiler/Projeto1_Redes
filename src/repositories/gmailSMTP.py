@@ -8,19 +8,17 @@ from models.message import Message
 class GmailSMTP:
 
     def SendMesage(self, message: Message):
+        SMTP_SERVER = 'smtp.gmail.com' 
+        SMTP_PORT = 587
         YOUR_EMAIL = "murilo.teste.email.dev@gmail.com"
         YOUR_PASSWORD = "ailg zgbk shqc psng"
         YOUR_DESTINATION_EMAIL = message.Destination_email
         YOUR_SUBJECT_EMAIL = message.Subject_email
         YOUR_BODY_EMAIL = message.Body
-
         endmsg = '\r\n.\r\n'
 
-        mailServer = 'smtp.gmail.com'
-        mailPort = 587
-
         clientSocket = socket(AF_INET, SOCK_STREAM)
-        clientSocket.connect((mailServer, mailPort))
+        clientSocket.connect((SMTP_SERVER, SMTP_PORT))
 
         recv = clientSocket.recv(1024)
         print(recv)
